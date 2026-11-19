@@ -75,3 +75,18 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+
+# Sonar
+.scannerwork/
+
+# Reportes y archivos temporales
+/dist/
+/test-results/
+/playwright-report/
+/.trae-html-share-packages/
+.scannerwork/

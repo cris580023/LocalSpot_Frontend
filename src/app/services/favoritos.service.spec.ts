@@ -33,9 +33,9 @@ describe('FavoritosService (Unit Tests)', () => {
 
     service.cargarFavoritos().subscribe(items => {
       expect(items.length).toBe(2);
-      expect(service.esFavorito(1)).toBeTrue();
-      expect(service.esFavorito(2)).toBeTrue();
-      expect(service.esFavorito(3)).toBeFalse();
+      expect(service.esFavorito(1)).toBe(true);
+      expect(service.esFavorito(2)).toBe(true);
+      expect(service.esFavorito(3)).toBe(false);
     });
 
     const req = httpMock.expectOne(`${environment.apiUrl}/favoritos`);
@@ -47,7 +47,7 @@ describe('FavoritosService (Unit Tests)', () => {
     const lugarId = 5;
 
     service.toggleFavorito(lugarId).subscribe(() => {
-      expect(service.esFavorito(lugarId)).toBeTrue();
+      expect(service.esFavorito(lugarId)).toBe(true);
     });
 
     const req = httpMock.expectOne(`${environment.apiUrl}/favoritos/${lugarId}`);
@@ -63,15 +63,32 @@ describe('FavoritosService (Unit Tests)', () => {
     const reqGet = httpMock.expectOne(`${environment.apiUrl}/favoritos`);
     reqGet.flush([{ idUsuario: 100, idLugar: lugarId }]);
 
-    expect(service.esFavorito(lugarId)).toBeTrue();
+    expect(service.esFavorito(lugarId)).toBe(true);
 
     // Toggle para eliminar
     service.toggleFavorito(lugarId).subscribe(() => {
-      expect(service.esFavorito(lugarId)).toBeFalse();
+      expect(service.esFavorito(lugarId)).toBe(false);
     });
 
     const reqDelete = httpMock.expectOne(`${environment.apiUrl}/favoritos/${lugarId}`);
     expect(reqDelete.request.method).toBe('DELETE');
     reqDelete.flush(null);
+  });
+
+  it('devuelve un arreglo vacío y mantiene el estado cuando el backend falla', () => {
+    const warn = console.warn;
+    console.warn = () => undefined;
+
+    let resultado: FavoritoItem[] | undefined;
+    service.cargarFavoritos().subscribe(items => (resultado = items));
+
+    httpMock
+      .expectOne(`${environment.apiUrl}/favoritos`)
+      .flush('caído', { status: 500, statusText: 'Server Error' });
+
+    console.warn = warn;
+
+    expect(resultado).toEqual([]);
+    expect(service.esFavorito(1)).toBe(false);
   });
 });
